@@ -73,7 +73,6 @@ class phpmathpublisher {
      * @param int $size
      * @param string  $pathtoimg HTML base path pointing to the image dir
      * @return string the HTML img code
-     * @fixme fix XSS vulnerability
      */
     public function mathimage($text, $size, $pathtoimg) {
         $nameimg = md5(trim($text).$size).'.png';
@@ -87,7 +86,10 @@ class phpmathpublisher {
             imagepng($formula->image, $this->dirimg."/math_".$v."_".$nameimg);
         }
         $valign=$v-1000;
-        return '<img src="'.$pathtoimg."math_".$v."_".$nameimg.'" style="vertical-align:'.$valign.'px;'.' display: inline-block ;" alt="'.$text.'" title="'.$text.'"/>';
+        return '<img src="'.$pathtoimg.'math_'.$v.'_'.$nameimg.'"
+                     style="vertical-align:'.$valign.'px;'.' display: inline-block ;"
+                     alt="'.htmlspecialchars($text).'"
+                     title="'.htmlspecialchars($text).'"/>';
     }
 
 
