@@ -1,0 +1,7 @@
+base    mathpublish
+author  Christopher Smith
+email   chris@jalakai.co.uk
+date    2012-02-18
+name    Math Plugin
+desc    Add mathematical formulae to dokuwiki. Syntax: <m size>math formulae</m>
+url     http://www.dokuwiki.org/plugin:mathpublish
