@@ -1,4 +1,12 @@
 <?php
+/**
+ * PHPMathPublisher base expression class
+ * 
+ * @license GPL 2
+ * @author  Pascal Brachet <pbrachet [at] xm1math.net>
+ * @author  Andreas Gohr <gohr@cosmocode.de>
+ * @link    http://www.xm1math.net/phpmathpublisher/
+ */
 
 class PMP_expression {
     protected $texte;

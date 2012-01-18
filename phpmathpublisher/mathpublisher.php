@@ -1,9 +1,17 @@
 <?php
 /**
+ * PHPMathPublisher main class
+ * 
+ * This was converted fromt he original release 0.3 into a class structure. I
+ * don't speak french, so I'm a bit at loss at what all the functions and
+ * parameters really do. Documentation should be updated, function and parameter
+ * names should be refactored into English names.
+ * 
  * @license GPL 2
  * @author  Pascal Brachet <pbrachet [at] xm1math.net>
  * @author  Andreas Gohr <gohr@cosmocode.de>
  * @link    http://www.xm1math.net/phpmathpublisher/
+ * @fixme   document and refactor, see above
  */
 
 require(dirname(__FILE__).'/expression.php');
@@ -34,10 +42,11 @@ class phpmathpublisher {
      * In that case, the function returns a parameter (recorded in the name of
      * the image file) which allows to align correctly the image with the text.
      *
-     * @param string $n the image path
+     * @param string $n the image name
+     * @fixme this needs a directory scan which is quite inefficient
      * @return unknown
      */
-    function detectimg($n) {
+    protected function detectimg($n) {
         $ret=0;
         $handle=opendir($this->dirimg);
         while ($fi = readdir($handle)) {
@@ -61,12 +70,12 @@ class phpmathpublisher {
      * returns the <img src=...></img> html code.
      *
      * @param string  $text a formular in syntax
-     * @param unknown $size
+     * @param int $size
      * @param string  $pathtoimg HTML base path pointing to the image dir
      * @return string the HTML img code
      * @fixme fix XSS vulnerability
      */
-    function mathimage($text, $size, $pathtoimg) {
+    public function mathimage($text, $size, $pathtoimg) {
         $nameimg = md5(trim($text).$size).'.png';
         $v=$this->detectimg($nameimg);
         if ($v==0) {
@@ -104,10 +113,10 @@ class phpmathpublisher {
      * of the image filename is: math_(1000+valign)_md5(formulatext.size).png.
      * (1000+valign is used instead of valign directly to avoid a negative number)
      *
-     * @param unknown $text
-     * @param unknown $size
-     * @param unknown $pathtoimg
-     * @return unknown
+     * @param string $text
+     * @param int $size
+     * @param string $pathtoimg
+     * @return string
      */
     public function mathfilter($text, $size, $pathtoimg) {
         $text=stripslashes($text);
@@ -124,10 +133,10 @@ class phpmathpublisher {
     }
 
     /**
+     * Cleans and parses a formula into an array of tokens?
      *
-     *
-     * @param unknown $expression
-     * @return unknown
+     * @param string $expression The formular
+     * @return array
      */
     protected function tableau_expression($expression) {
         $e = str_replace('_', ' _ ', $expression);
