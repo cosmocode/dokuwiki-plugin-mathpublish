@@ -66,24 +66,6 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
         $this->enable = $this->_requirements_ok();
     }
 
-    /**
-     * return some info
-     */
-    function getInfo(){
-
-      return array(
-        'author' => 'Christopher Smith',
-        'email'  => 'chris@jalakai.co.uk',
-        'date'   => '2008-08-13',
-        'name'   => 'Math Plugin'.(!$this->enable ? ' (disabled)' : ''),
-        'desc'   => 'Add mathematical formulae to dokuwiki
-                     Syntax: <m size>math formulae</m>
-                     For formulae syntax visit http://www.xm1math.net/phpmathpublisher/doc/help.html'.
-                     (!$this->enable ? "\n(".$this->msg_disable.")" : ''),
-        'url'    => 'http://www.dokuwiki.org/plugin:math2',
-      );
-    }
-
     function getType(){ return 'protected'; }
     function getPType(){ return 'normal'; }
     function getSort(){ return 208; }
