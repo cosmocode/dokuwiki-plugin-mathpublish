@@ -27,7 +27,7 @@ class PMP_expression{
     /**
      * Mathematical symbol names
      */
-    protected static $symboles = array(
+    protected $symboles = array(
         '~' => ' ',
         'alpha' => '&#174;',
         'beta' => '&#175;',
@@ -165,7 +165,7 @@ class PMP_expression{
     /**
      * Symbol to font assignment
      */
-    protected static $fontesmath = array(
+    protected $fontesmath = array(
         '~' => 'FreeSerif',
         'alpha' => 'cmmi10',
         'beta' => 'cmmi10',
