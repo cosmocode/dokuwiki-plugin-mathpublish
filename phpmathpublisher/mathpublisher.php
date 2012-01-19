@@ -73,9 +73,9 @@ class phpmathpublisher{
     public function renderimage($text, $size, $output){
         $formula = new PMP_expression_math($this->tableau_expression(trim($text)));
         $formula->dessine($size);
-        $alignment = imagesy($formula->image) + $formula->base_verticale + 3;
+        $alignment = 1000 - imagesy($formula->image) + $formula->base_verticale + 3;
         imagepng($formula->image, $output);
-        return $alignment;
+        return $alignment - 1000;
     }
 
     /**
