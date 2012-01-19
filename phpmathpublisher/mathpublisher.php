@@ -2,12 +2,12 @@
 
 /**
  * PHPMathPublisher main class
- * 
+ *
  * This was converted fromt he original release 0.3 into a class structure. I
  * don't speak french, so I'm a bit at loss at what all the functions and
  * parameters really do. Documentation should be updated, function and parameter
  * names should be refactored into English names.
- * 
+ *
  * @license GPL 2
  * @author  Pascal Brachet <pbrachet [at] xm1math.net>
  * @author  Andreas Gohr <gohr@cosmocode.de>
@@ -59,6 +59,23 @@ class phpmathpublisher{
         }
         closedir($handle);
         return $ret;
+    }
+
+    /**
+     * Renders the formula into an image file
+     *
+     * @author Andreas Gohr <gohr@cosmocode.de>
+     * @param  string $text     The formula in syntax
+     * @param  int    $size     The glyphsize in pixels
+     * @param  string $output   Full path to the image file
+     * @return int              The vertical alignment
+     */
+    public function renderimage($text, $size, $output){
+        $formula = new PMP_expression_math($this->tableau_expression(trim($text)));
+        $formula->dessine($size);
+        $alignment = imagesy($formula->image) + $formula->base_verticale + 3;
+        imagepng($formula->image, $output);
+        return $alignment;
     }
 
     /**
