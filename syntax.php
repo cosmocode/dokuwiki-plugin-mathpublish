@@ -99,18 +99,25 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
 
         // check if we have a cached version available
         $valignfile = getcachename($ident, '.mathpublish.valign');
+        $imagefile  = getcachename($ident, '.mathpublish.png');
         if(file_exists($valignfile)){
             $valign = (int) io_readFile($valignfile);
         }else{
-            $imagefile = getcachename($ident, '.mathpublish.png');
             require_once(dirname(__FILE__).'/phpmathpublisher/mathpublisher.php');
             $pmp    = new phpmathpublisher();
             $valign = $pmp->renderImage($math,$size,$imagefile);
             io_saveFile($valignfile,$valign);
         }
 
+        // pass local files to PDF renderer
+        if(is_a($R,'renderer_plugin_dw2pdf')){
+            $img = 'dw2pdf://'.$imagefile;
+        }else{
+            $img = DOKU_BASE.'lib/plugins/mathpublish/img.php?img='.$ident;
+        }
+
         // output aligned image
-        $R->doc .= '<img src="'.DOKU_BASE.'lib/plugins/mathpublish/img.php?img='.$ident.'"
+        $R->doc .= '<img src="'.$img.'"
                          class="media'.$align.' mathpublish"
                          alt="'.hsc($math).'"
                          title="'.hsc($math).'"
