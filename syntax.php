@@ -91,7 +91,7 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
     function render($mode, &$R, $data) {
         if(!$data)           return; // skip rendering for the enter and exit patterns #FIXME
         if(!$this->enable)   return;
-        if($mode != 'xhtml') return;
+        if($mode != 'xhtml' && $mode != 'odt') return;
 
         list($size, $math, $align) = $data;
         $ident = md5($math.'-'.$size);
@@ -117,12 +117,17 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
         }
 
         // output aligned image
-        $R->doc .= '<img src="'.$img.'"
-                         class="media'.$align.' mathpublish"
-                         alt="'.hsc($math).'"
-                         title="'.hsc($math).'"
-                         style="display: inline-block; vertical-align:'.$valign.'px" />';
-
+        if ($mode != 'odt') {
+            $R->doc .= '<img src="'.$img.'"
+                             class="media'.$align.' mathpublish"
+                             alt="'.hsc($math).'"
+                             title="'.hsc($math).'"
+                             style="display: inline-block; vertical-align:'.$valign.'px" />';
+        } else {
+            if ($align == 'normal')
+                $align = 'left';
+            $R->_odtAddImage($imagefile, NULL, NULL, $align, NULL, NULL);
+        }
         return false;
     }
 
