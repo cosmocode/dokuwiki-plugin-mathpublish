@@ -54,7 +54,7 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
     /**
      * Handle the match
      */
-    public function handle($match, $state, $pos, &$handler){
+    public function handle($match, $state, $pos, Doku_Handler $handler){
         if ( $state == DOKU_LEXER_UNMATCHED ) {
             list($size, $math) = preg_split('/>/u', $match, 2);   // will split into size & math formulae
             if (!is_numeric($size)) $size = 12; // default size in pixels
@@ -88,7 +88,7 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
     /**
      * Create output
      */
-    function render($mode, &$R, $data) {
+    function render($mode, Doku_Renderer $R, $data) {
         if(!$data)           return; // skip rendering for the enter and exit patterns #FIXME
         if(!$this->enable)   return;
         if($mode != 'xhtml') return;
