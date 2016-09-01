@@ -49,7 +49,8 @@ class phpmathpublisher{
         $handle = opendir($this->dirimg);
         while($fi = readdir($handle)){
             $info = pathinfo($fi);
-            if($fi != "." && $fi != ".." && $info["extension"] == "png" && ereg("^math", $fi)){
+            //if($fi != "." && $fi != ".." && $info["extension"] == "png" && ereg("^math", $fi)){
+            if($fi != "." && $fi != ".." && $info["extension"] == "png" && preg_match('/^math/', $fi)){
                 list($math, $v, $name) = explode("_", $fi);
                 if($name == $n){
                     $ret = $v;
@@ -165,7 +166,7 @@ class phpmathpublisher{
         for($i = 0; $i < count($t); $i++){
             if(is_array($t[$i]))
                 $t[$i] = $t[$i][1];
-            if(ereg("formula", $t[$i])){
+            if(strpos($t[$i], 'formula')!==false){
                 $d = $i + 2;
                 break;
             }
