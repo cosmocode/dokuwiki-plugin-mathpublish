@@ -307,7 +307,7 @@ class PMP_expression{
      * @return unknown
      */
     protected function est_nombre($str){
-        return ereg("^[0-9]", $str);
+        return preg_match('/^[0-9]/', $str);
     }
 
     /**
@@ -607,7 +607,7 @@ class PMP_expression{
         $texte = stripslashes($texte);
         if(isset($this->fontesmath[$texte]))
             $font = $this->dirfonts."/".$this->fontesmath[$texte].".ttf";
-        elseif(ereg("[a-zA-Z]", $texte))
+        elseif(preg_match('/[a-zA-Z]/', $texte))
             $font = $this->dirfonts."/FreeSerifItalic.ttf";
         else
             $font = $this->dirfonts."/FreeSerif.ttf";
