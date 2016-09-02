@@ -28,9 +28,8 @@ require_once(DOKU_PLUGIN . 'syntax.php');
  */
 class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
 
-    // FIXME localise
-    var $enable = false;
-    var $msg_sent = false;
+    protected $enable = false;
+    protected $msg_sent = false;
 
     /**
      * syntax_plugin_mathpublish constructor.
@@ -47,8 +46,7 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
      * @return string
      */
     public function getType() {
-        #FIXME why not substition?
-        return 'protected';
+        return 'substition';
     }
 
     /**
@@ -80,47 +78,51 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
 
     /**
      * Connect pattern to lexer
+     * @param string $mode
      */
     public function connectTo($mode) {
-        $this->Lexer->addEntryPattern('<m(?=[^\r\n]*?>.*?</m>)', $mode, 'plugin_mathpublish');
-    }
-
-    public function postConnect() {
-        $this->Lexer->addExitPattern('</m>', 'plugin_mathpublish');
+        $this->Lexer->addSpecialPattern('<m.*?>.*?(?:</m>)', $mode, 'plugin_mathpublish');
     }
 
     /**
      * Handle the match
+     * @param string $match
+     * @param int $state
+     * @param int $pos
+     * @param Doku_Handler $handler
+     * @return array
      */
     public function handle($match, $state, $pos, Doku_Handler $handler) {
-        if($state == DOKU_LEXER_UNMATCHED) {
-            list($size, $math) = preg_split('/>/u', $match, 2);   // will split into size & math formulae
-            if(!is_numeric($size)) $size = 12; // default size in pixels
-
-            if(strlen($math) > 1) {
-                $c_first = $math{0};
-                $c_last = $math{strlen($math) - 1};
-
-                if($c_first == ' ') {
-                    if($c_last == ' ') {
-                        $align = 'center';
-                    } else {
-                        $align = 'right';
-                    }
-                } else {
-                    if($c_last == ' ') {
-                        $align = 'left';
-                    } else {
-                        $align = 'normal';
-                    }
-                };
-            } else {
-                $align = 'normal';
-            }
-
-            return (array($size, trim($math), $align));
+        $match = substr($match, 2, -4); // strip '<m' and '</m>'
+        list($size,$math) = explode('>', $match, 2);
+        if(!$math) {
+            $math = $size;
+            $size = '';
         }
-        return false;
+        $size = (int) trim($size);
+        if(!$size) $size = 12;
+
+        if(strlen($math) > 1) {
+            $c_first = $math{0};
+            $c_last = $math{strlen($math) - 1};
+            if($c_first == ' ') {
+                if($c_last == ' ') {
+                    $align = 'center';
+                } else {
+                    $align = 'right';
+                }
+            } else {
+                if($c_last == ' ') {
+                    $align = 'left';
+                } else {
+                    $align = '';
+                }
+            };
+        } else {
+            $align = '';
+        }
+
+        return (array($size, trim($math), $align));
     }
 
     /**
@@ -131,7 +133,6 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
      * @return bool
      */
     function render($mode, Doku_Renderer $R, $data) {
-        if(!$data) return true; // skip rendering for the enter and exit patterns
         if(!$this->enable) return true;
         if($mode != 'xhtml') return false;
 
@@ -147,7 +148,7 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
             require_once(__DIR__ . '/phpmathpublisher/load.php');
             $pmp = new \RL\PhpMathPublisher\PhpMathPublisher('', '', $size);
             $pmp->getHelper()->setTransparent(true);
-            $valign = $pmp->renderImage($math, $imagefile);
+            $valign = $pmp->renderImage($math, $imagefile) - 1000;
             io_saveFile($valignfile, $valign);
         }
 
@@ -158,12 +159,19 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
             $img = DOKU_BASE . 'lib/plugins/mathpublish/img.php?img=' . $ident;
         }
 
+        if($align) {
+            $display = 'block';
+            $align = "media$align";
+        } else {
+            $display = 'inline-block';
+        }
+
         // output aligned image
         $R->doc .= '<img src="' . $img . '"
-                         class="media' . $align . ' mathpublish"
+                         class="' . $align . ' mathpublish"
                          alt="' . hsc($math) . '"
                          title="' . hsc($math) . '"
-                         style="display: inline-block; vertical-align:' . $valign . 'px" />';
+                         style="display: '.$display.'; vertical-align:' . $valign . 'px" />';
 
         return true;
     }
