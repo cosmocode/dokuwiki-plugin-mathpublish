@@ -94,7 +94,7 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
      */
     public function handle($match, $state, $pos, Doku_Handler $handler) {
         $match = substr($match, 2, -4); // strip '<m' and '</m>'
-        list($size,$math) = explode('>', $match, 2);
+        list($size, $math) = explode('>', $match, 2);
         if(!$math) {
             $math = $size;
             $size = '';
@@ -134,7 +134,7 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
      */
     function render($mode, Doku_Renderer $R, $data) {
         if(!$this->enable) return true;
-        if($mode != 'xhtml') return false;
+        if($mode != 'xhtml' && $mode != 'odt') return false;
 
         list($size, $math, $align) = $data;
         $ident = md5($math . '-' . $size);
@@ -159,20 +159,26 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
             $img = DOKU_BASE . 'lib/plugins/mathpublish/img.php?img=' . $ident;
         }
 
-        if($align) {
-            $display = 'block';
-            $align = "media$align";
-        } else {
-            $display = 'inline-block';
-        }
-
         // output aligned image
-        $R->doc .= '<img src="' . $img . '"
+        if($mode == 'odt') {
+            if(!$align) {
+                $align = 'left';
+            }
+            $R->_odtAddImage($imagefile, NULL, NULL, $align, NULL, NULL);
+        } else {
+            if($align) {
+                $display = 'block';
+                $align = "media$align";
+            } else {
+                $display = 'inline-block';
+            }
+
+            $R->doc .= '<img src="' . $img . '"
                          class="' . $align . ' mathpublish"
                          alt="' . hsc($math) . '"
                          title="' . hsc($math) . '"
-                         style="display: '.$display.'; vertical-align:' . $valign . 'px" />';
-
+                         style="display: ' . $display . '; vertical-align:' . $valign . 'px" />';
+        }
         return true;
     }
 
