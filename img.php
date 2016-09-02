@@ -4,33 +4,33 @@
  * @author     Andreas Gohr <gohr@cosmocode.de>
  */
 
-if(!defined('DOKU_INC')) define('DOKU_INC',dirname(__FILE__).'/../../../');
-define('NOSESSION',true);
-require_once(DOKU_INC.'inc/init.php');
+if(!defined('DOKU_INC')) define('DOKU_INC', dirname(__FILE__) . '/../../../');
+define('NOSESSION', true);
+require_once(DOKU_INC . 'inc/init.php');
+global $conf;
 
-// let the syntax plugin do the work
-$cache = getcachename($_GET['img'], '.mathpublish.png');
+$cache = getCacheName($_GET['img'], '.mathpublish.png');
 if(!file_exists($cache)) _fail();
+$time = filemtime($cache);
 
 header('Content-Type: image/png;');
-header('Expires: '.gmdate("D, d M Y H:i:s", time()+max($conf['cachetime'], 3600)).' GMT');
-header('Cache-Control: public, proxy-revalidate, no-transform, max-age='.max($conf['cachetime'], 3600));
+header('Expires: ' . gmdate("D, d M Y H:i:s", time() + max($conf['cachetime'], 3600)) . ' GMT');
+header('Cache-Control: public, proxy-revalidate, no-transform, max-age=' . max($conf['cachetime'], 3600));
 header('Pragma: public');
 http_conditionalRequest($time);
-if (http_sendfile($cache)) exit;
-$fp = @fopen($cache,"rb");
-if($fp){
-    http_rangeRequest($fp,filesize($cache),'image/png');
-}else{
-    header("HTTP/1.0 500 Internal Server Error");
-    print "Could not read file - bad permissions?";
+http_sendfile($cache); // exits if x-sendfile support
+$fp = @fopen($cache, "rb");
+if($fp) {
+    http_rangeRequest($fp, filesize($cache), 'image/png');
+} else {
+    http_status(500);
+    print 'Could not read file - bad permissions?';
 }
 
-
-function _fail(){
-    header("HTTP/1.0 404 Not Found");
+function _fail() {
+    http_status(404);
     header('Content-Type: image/png');
-    echo io_readFile('broken.png',false);
+    echo io_readFile(__DIR__ . '/broken.png', false);
     exit;
 }
 

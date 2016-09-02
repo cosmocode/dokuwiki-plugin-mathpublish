@@ -131,7 +131,7 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
      * @return bool
      */
     function render($mode, Doku_Renderer $R, $data) {
-        if(!$data) return true; // skip rendering for the enter and exit patterns #FIXME
+        if(!$data) return true; // skip rendering for the enter and exit patterns
         if(!$this->enable) return true;
         if($mode != 'xhtml') return false;
 
@@ -173,12 +173,12 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
      */
     private function _requirements_ok() {
         if(!function_exists('imagepng')) {
-            $this->msg($this->getLang('nopng'), -1);
+            $this->_msg($this->getLang('nopng'), -1);
             return false;
         }
 
         if(!function_exists('imagettftext')) {
-            $this->msg($this->getLang('noft'), -1);
+            $this->_msg($this->getLang('noft'), -1);
             return false;
         }
 
@@ -187,23 +187,15 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
 
     /**
      * used to avoid multiple messages
+     *
+     * @param string $str
+     * @param int $lvl
      */
-    private function _msg($str, $lvl = 0) {
+    protected function _msg($str, $lvl = 0) {
         if($this->msg_sent) return;
 
         msg($str, $lvl);
         $this->msg_sent = true;
     }
-
-    // would like to see this function in io.php :)
-    function _mkdir($d) {
-        global $conf;
-
-        umask($conf['dmask']);
-        $ok = io_mkdir_p($d);
-        umask($conf['umask']);
-        return $ok;
-    }
-
 }
 
