@@ -18,9 +18,9 @@
  * @author     Pascal Brachet
  */
 
-if(!defined('DOKU_INC')) define('DOKU_INC',realpath(dirname(__FILE__).'/../../').'/');
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-require_once(DOKU_PLUGIN.'syntax.php');
+if(!defined('DOKU_INC')) define('DOKU_INC', realpath(dirname(__FILE__) . '/../../') . '/');
+if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC . 'lib/plugins/');
+require_once(DOKU_PLUGIN . 'syntax.php');
 
 /**
  * All DokuWiki plugins to extend the parser/rendering mechanism
@@ -32,48 +32,86 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
     var $enable = false;
     var $msg_sent = false;
 
+    /**
+     * syntax_plugin_mathpublish constructor.
+     */
     public function __construct() {
         $this->enable = $this->_requirements_ok();
     }
 
-    public function getType(){ return 'protected'; } #FIXME why not substition?
-    public function getPType(){ return 'normal'; }
-    public function getSort(){ return 208; }
+    /**
+     * Syntax Type
+     *
+     * Needs to return one of the mode types defined in $PARSER_MODES in parser.php
+     *
+     * @return string
+     */
+    public function getType() {
+        #FIXME why not substition?
+        return 'protected';
+    }
+
+    /**
+     * Paragraph Type
+     *
+     * Defines how this syntax is handled regarding paragraphs. This is important
+     * for correct XHTML nesting. Should return one of the following:
+     *
+     * 'normal' - The plugin can be used inside paragraphs
+     * 'block'  - Open paragraphs need to be closed before plugin output
+     * 'stack'  - Special case. Plugin wraps other paragraphs.
+     *
+     * @see Doku_Handler_Block
+     *
+     * @return string
+     */
+    public function getPType() {
+        return 'normal';
+    }
+
+    /**
+     * Sort for applying this mode
+     *
+     * @return int
+     */
+    public function getSort() {
+        return 208;
+    }
 
     /**
      * Connect pattern to lexer
      */
     public function connectTo($mode) {
-        $this->Lexer->addEntryPattern('<m(?=[^\r\n]*?>.*?</m>)',$mode,'plugin_mathpublish');
+        $this->Lexer->addEntryPattern('<m(?=[^\r\n]*?>.*?</m>)', $mode, 'plugin_mathpublish');
     }
 
     public function postConnect() {
-        $this->Lexer->addExitPattern('</m>','plugin_mathpublish');
+        $this->Lexer->addExitPattern('</m>', 'plugin_mathpublish');
     }
 
     /**
      * Handle the match
      */
-    public function handle($match, $state, $pos, Doku_Handler $handler){
-        if ( $state == DOKU_LEXER_UNMATCHED ) {
+    public function handle($match, $state, $pos, Doku_Handler $handler) {
+        if($state == DOKU_LEXER_UNMATCHED) {
             list($size, $math) = preg_split('/>/u', $match, 2);   // will split into size & math formulae
-            if (!is_numeric($size)) $size = 12; // default size in pixels
+            if(!is_numeric($size)) $size = 12; // default size in pixels
 
-            if (strlen($math) > 1) {
+            if(strlen($math) > 1) {
                 $c_first = $math{0};
-                $c_last = $math{strlen($math)-1};
+                $c_last = $math{strlen($math) - 1};
 
-                if($c_first == ' '){
-                    if($c_last == ' '){
+                if($c_first == ' ') {
+                    if($c_last == ' ') {
                         $align = 'center';
-                    }else{
+                    } else {
                         $align = 'right';
                     }
-                }else{
-                    if($c_last == ' '){
+                } else {
+                    if($c_last == ' ') {
                         $align = 'left';
-                    }else{
-                        $align ='normal';
+                    } else {
+                        $align = 'normal';
                     }
                 };
             } else {
@@ -87,57 +125,60 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
 
     /**
      * Create output
+     * @param string $mode
+     * @param Doku_Renderer $R
+     * @param array $data
+     * @return bool
      */
     function render($mode, Doku_Renderer $R, $data) {
-        if(!$data)           return; // skip rendering for the enter and exit patterns #FIXME
-        if(!$this->enable)   return;
-        if($mode != 'xhtml') return;
+        if(!$data) return true; // skip rendering for the enter and exit patterns #FIXME
+        if(!$this->enable) return true;
+        if($mode != 'xhtml') return false;
 
         list($size, $math, $align) = $data;
-        $ident = md5($math.'-'.$size);
-
+        $ident = md5($math . '-' . $size);
 
         // check if we have a cached version available
-        $valignfile = getcachename($ident, '.mathpublish.valign');
-        $imagefile  = getcachename($ident, '.mathpublish.png');
-        if(file_exists($valignfile)){
+        $valignfile = getCacheName($ident, '.mathpublish.valign');
+        $imagefile = getCacheName($ident, '.mathpublish.png');
+        if(file_exists($valignfile)) {
             $valign = (int) io_readFile($valignfile);
-        }else{
-            require_once(dirname(__FILE__).'/phpmathpublisher/mathpublisher.php');
-            $pmp    = new phpmathpublisher();
-            $valign = $pmp->renderImage($math,$size,$imagefile);
-            io_saveFile($valignfile,$valign);
+        } else {
+            require_once(__DIR__ . '/phpmathpublisher/load.php');
+            $pmp = new \RL\PhpMathPublisher\PhpMathPublisher('', '', $size);
+            $pmp->getHelper()->setTransparent(true);
+            $valign = $pmp->renderImage($math, $imagefile);
+            io_saveFile($valignfile, $valign);
         }
 
         // pass local files to PDF renderer
-        if(is_a($R,'renderer_plugin_dw2pdf')){
-            $img = 'dw2pdf://'.$imagefile;
-        }else{
-            $img = DOKU_BASE.'lib/plugins/mathpublish/img.php?img='.$ident;
+        if(is_a($R, 'renderer_plugin_dw2pdf')) {
+            $img = 'dw2pdf://' . $imagefile;
+        } else {
+            $img = DOKU_BASE . 'lib/plugins/mathpublish/img.php?img=' . $ident;
         }
 
         // output aligned image
-        $R->doc .= '<img src="'.$img.'"
-                         class="media'.$align.' mathpublish"
-                         alt="'.hsc($math).'"
-                         title="'.hsc($math).'"
-                         style="display: inline-block; vertical-align:'.$valign.'px" />';
+        $R->doc .= '<img src="' . $img . '"
+                         class="media' . $align . ' mathpublish"
+                         alt="' . hsc($math) . '"
+                         title="' . hsc($math) . '"
+                         style="display: inline-block; vertical-align:' . $valign . 'px" />';
 
-        return false;
+        return true;
     }
-
 
     /**
      * check if php installation has required libraries/functions
      */
     private function _requirements_ok() {
-        if (!function_exists('imagepng')) {
-            $this->msg($this->getLang('nopng'),-1);
+        if(!function_exists('imagepng')) {
+            $this->msg($this->getLang('nopng'), -1);
             return false;
         }
 
-        if (!function_exists('imagettftext')) {
-            $this->msg($this->getLang('noft'),-1);
+        if(!function_exists('imagettftext')) {
+            $this->msg($this->getLang('noft'), -1);
             return false;
         }
 
@@ -147,8 +188,8 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
     /**
      * used to avoid multiple messages
      */
-    private function _msg($str, $lvl=0) {
-        if ($this->msg_sent) return;
+    private function _msg($str, $lvl = 0) {
+        if($this->msg_sent) return;
 
         msg($str, $lvl);
         $this->msg_sent = true;
