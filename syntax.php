@@ -18,10 +18,6 @@
  * @author     Pascal Brachet
  */
 
-if(!defined('DOKU_INC')) define('DOKU_INC', realpath(dirname(__FILE__) . '/../../') . '/');
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC . 'lib/plugins/');
-require_once(DOKU_PLUGIN . 'syntax.php');
-
 /**
  * All DokuWiki plugins to extend the parser/rendering mechanism
  * need to inherit from this class
@@ -103,8 +99,8 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
         if(!$size) $size = 12;
 
         if(strlen($math) > 1) {
-            $c_first = $math{0};
-            $c_last = $math{strlen($math) - 1};
+            $c_first = $math[0];
+            $c_last = $math[strlen($math) - 1];
             if($c_first == ' ') {
                 if($c_last == ' ') {
                     $align = 'center';
