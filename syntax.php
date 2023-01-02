@@ -133,13 +133,16 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
         if($mode != 'xhtml' && $mode != 'odt') return false;
 
         list($size, $math, $align) = $data;
+        $scale = 1;
+        if(is_a($R, 'renderer_plugin_dw2pdf')) $scale=3;
+        $size = $size * $scale;
         $ident = md5($math . '-' . $size);
 
         // check if we have a cached version available
         $valignfile = getCacheName($ident, '.mathpublish.valign');
         $imagefile = getCacheName($ident, '.mathpublish.png');
         if(file_exists($valignfile)) {
-            $valign = (int) io_readFile($valignfile);
+            $valign = (int) io_readFile($valignfile); // FIXME valign isn't used anymore
         } else {
             require_once(__DIR__ . '/phpmathpublisher/load.php');
             $pmp = new \RL\PhpMathPublisher\PhpMathPublisher('', '', $size);
@@ -155,12 +158,16 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
             $img = DOKU_BASE . 'lib/plugins/mathpublish/img.php?img=' . $ident;
         }
 
+        list($width, $height) = getimagesize($imagefile);
+        $width = $width/$scale;
+        $height = $height/$scale;
+
         // output aligned image
         if($mode == 'odt') {
             if(!$align) {
                 $align = 'left';
             }
-            $R->_odtAddImage($imagefile, NULL, NULL, $align, NULL, NULL);
+            $R->_odtAddImage($imagefile, $width, $height, $align, NULL, NULL);
         } else {
             if($align) {
                 $display = 'block';
@@ -169,11 +176,15 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
                 $display = 'inline-block';
             }
 
-            $R->doc .= '<img src="' . $img . '"
-                         class="' . $align . ' mathpublish"
-                         alt="' . hsc($math) . '"
-                         title="' . hsc($math) . '"
-                         style="display: ' . $display . '; vertical-align:' . $valign . 'px" />';
+            $R->doc .= '<img '. buildAttributes([
+                    'src' => $img,
+                    'class' => $align . ' mathpublish',
+                    'alt' => $math,
+                    'title' => $math,
+                    'width' => $width,
+                    'height' => $height,
+                    'style' => "display: $display; object-fit: fill;",
+                ]).' />';
         }
         return true;
     }
