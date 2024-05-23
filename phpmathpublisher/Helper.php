@@ -743,9 +743,9 @@ class Helper
         if (isset($fontsMath[$text])) {
             $font = $dirFonts . "/" . $fontsMath[$text] . ".ttf";
         } elseif (preg_match("#[a-zA-Z]#", $text)) {
-            $font = $dirFonts . "/cmmi10.ttf";
+            $font = $dirFonts . "/FreeSerifItalic.ttf";
         } else {
-            $font = $dirFonts . "/cmr10.ttf";
+            $font = $dirFonts . "/FreeSerif.ttf";
         }
         if (isset($symbols[$text])) {
             $text = $symbols[$text];
