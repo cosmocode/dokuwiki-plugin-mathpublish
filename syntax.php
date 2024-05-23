@@ -131,6 +131,7 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
     function render($mode, Doku_Renderer $R, $data) {
         if(!$this->enable) return true;
         if($mode != 'xhtml' && $mode != 'odt') return false;
+        global $INPUT;
 
         list($size, $math, $align) = $data;
         $scale = 1;
@@ -139,16 +140,12 @@ class syntax_plugin_mathpublish extends DokuWiki_Syntax_Plugin {
         $ident = md5($math . '-' . $size);
 
         // check if we have a cached version available
-        $valignfile = getCacheName($ident, '.mathpublish.valign');
         $imagefile = getCacheName($ident, '.mathpublish.png');
-        if(file_exists($valignfile)) {
-            $valign = (int) io_readFile($valignfile); // FIXME valign isn't used anymore
-        } else {
+        if(!file_exists($imagefile) || $INPUT->bool('purge')) {
             require_once(__DIR__ . '/phpmathpublisher/load.php');
             $pmp = new \RL\PhpMathPublisher\PhpMathPublisher('', '', $size);
             $pmp->getHelper()->setTransparent(true);
-            $valign = $pmp->renderImage($math, $imagefile) - 1000;
-            io_saveFile($valignfile, $valign);
+            $pmp->renderImage($math, $imagefile) - 1000;
         }
 
         // pass local files to PDF renderer
